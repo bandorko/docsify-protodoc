@@ -1,0 +1,33 @@
+{
+  "name": "docsify-protodoc",
+  "version": "1.0.0",
+  "description": "Docsify plugin that generates markdown documentation from protocol descriptor",
+  "main": "src",
+  "scripts": {
+    "build": "webpack . dist/docsify-protodoc.js && webpack . -p dist/docsify-protodoc.min.js",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/bandorko/docsify-protodoc.git"
+  },
+  "keywords": [
+    "docsify",
+    "protodoc",
+    "plugin"
+  ],
+  "files": [
+    "src",
+    "dist",
+    "README.md"
+  ],
+  "author": "bandorko",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bandorko/docsify-protodoc/issues"
+  },
+  "homepage": "https://github.com/bandorko/docsify-protodoc#readme",
+  "devDependencies": {
+    "webpack": "^3.5.4"
+  }
+}
