@@ -1,6 +1,6 @@
 {
   "name": "docsify-protodoc",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "description": "Docsify plugin that generates markdown documentation from protocol descriptor",
   "main": "src",
   "scripts": {
