@@ -20,7 +20,10 @@ newlines = [\r\n]
 rws = spaces / newlines  // Real white space
 {return ""}
 ws = a: (rws / comment )+
-{ return a.filter(function (x){return x}) }
+{ var x =  a.filter(function (x){return x}).join("  \n")  //join with markdown newline
+  console.log(x);
+return x;
+ }
 
 letter = [A-Za-z]
 decDigit = [0-9]
@@ -100,7 +103,7 @@ fieldOptionsParam = "[" ws? a:fieldOptions ws? "]"
     return opts;    
 }
 
-field = prec:ws? a:"repeated"? ws? b:type ws? c:fieldName ws? "=" ws? d:fieldNumber ws? e:(fieldOptionsParam)? ws? ";"  rws? postc:slcomment?
+field = prec:ws? a:"repeated"? ws? b:type ws? c:fieldName ws? "=" ws? d:fieldNumber ws? e:(fieldOptionsParam)? ws? ";" spaces* postc:slcomment?
 { 
     return {
       type: "field",
@@ -109,7 +112,7 @@ field = prec:ws? a:"repeated"? ws? b:type ws? c:fieldName ws? "=" ws? d:fieldNum
       name: c,
       fieldNo: d,
       opts: e == null ? {} : e,
-      precomment: prec.join(""), 
+      precomment: prec, 
       postcomment: postc
     } 
 }
@@ -182,7 +185,7 @@ enumField = a:ident ws? "=" ws? b:intLit ws? c:(fieldOptionsParam)? ws? ";"
     return { type: 'enumField', name: a, val: b, opts: c == null ? {} : c };
 }
 message = prec:ws? "message" ws a:messageName ws? b:messageBody  rws? postc:slcomment?
-{ return {type: 'message', name: a, content: b.content, opts: b.opts ,precomment: prec.join(""), postcomment: postc} }
+{ return {type: 'message', name: a, content: b.content, opts: b.opts ,precomment: prec, postcomment: postc} }
 messageBody = "{" a:( field / enum / message / option / oneof / mapField /reserved / emptyStatement / ws )* "}"
 { 
     var opts = {};
@@ -198,7 +201,7 @@ messageBody = "{" a:( field / enum / message / option / oneof / mapField /reserv
     return {content: content, opts: opts};
 }
 
-service = prec:ws? "service" ws a:serviceName ws? "{" b:( option / rpc / emptyStatement/ ws )* "}" rws? postc:slcomment?
+service = prec:ws? "service" ws a:serviceName ws? "{" b:( option / rpc / emptyStatement/ ws )* "}" spaces* postc:slcomment?
 { 
     var opts = {};
     var content = [];
@@ -210,16 +213,16 @@ service = prec:ws? "service" ws a:serviceName ws? "{" b:( option / rpc / emptySt
         else
     	content.push(elem);
     }
-    return {type: "service", name: a, content: content, opts: opts, precomment: prec.join(""), postcomment: postc};
+    return {type: "service", name: a, content: content, opts: opts, precomment: prec, postcomment: postc};
 }
-rpc =  prec:ws? "rpc" ws a:rpcName ws? "(" ws? b:("stream" ws)? c:messageType ws? ")" ws? "returns" ws? "(" ws? d:("stream" ws)? e:messageType ws? ")" ws? f:(rpcBody / ";") rws? postc:slcomment?
+rpc =  prec:ws? "rpc" ws a:rpcName ws? "(" ws? b:("stream" ws)? c:messageType ws? ")" ws? "returns" ws? "(" ws? d:("stream" ws)? e:messageType ws? ")" ws? f:(rpcBody / ";") spaces* postc:slcomment?
 { 
     if(b && b[0] == "stream")
-	c+=" stream";
+	c="stream "+c;
     if(d && d[0] == "stream")
-	e+=" stream";
+	e="stream "+e;
     if( f == ";" )
 	f = {};
-    return { type: "rpc", name: a, param: c, returns: e, opts: f, precomment: prec.join(""), postcomment: postc } 
+    return { type: "rpc", name: a, param: c, returns: e, opts: f, precomment: prec, postcomment: postc } 
 }
 rpcBody = ( "{" (option / emptyStatement / ws )* "}" )

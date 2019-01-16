@@ -24,18 +24,37 @@ function protodoc(filename){
       ret += "## Services\n"
       for (i=0;i<services.length; i++){
         var service = services[i];
+        var methodDetails = "";
         ret += "### " + service.name + "\n";
-        ret += toDescription(service.precomment, service.postcomment);
+        ret += toDescription(service.precomment, service.postcomment).long;
         ret += "\n\n";
         var rpcs = service.content.filter(function(a){return a.type == "rpc"});
         if (rpcs.length > 0){
+          ret += "#### Method summary  \n";
           ret += "| Method Name | Param | Returns | Description |  \n";
           ret += "| --- | --- | --- | --- |  \n";
           for (j=0;j<rpcs.length;j++){
             var rpc = rpcs[j];
-            ret += "|" + rpc.name + " | "+ toTypeLink(rpc.param) + " | " + toTypeLink(rpc.returns) + " | " + toDescription(rpc.precomment, rpc.postComment).replace(newline,"") + " |  \n";
+            var description = toDescription(rpc.precomment, rpc.postcomment);
+            var name =  rpc.name;
+            var linkdots = "";
+            if (description.short != description.long){
+              name = " ["+rpc.name+"](#"+rpc.name+")";
+              linkdots = " [...](#"+rpc.name+")";
+              methodDetails += "***\n<a id=\""+rpc.name.toLowerCase()+"\">  </a>";
+              methodDetails += " **"+rpc.name+"**  \n";
+              methodDetails += "rpc "+rpc.name+" ("+rpc.param+") returns ("+rpc.returns+") {}\n\n";
+              methodDetails += description.long+"\n\n";
+              methodDetails += "**Param:** "+toTypeLink(rpc.param)+"  \n";
+              methodDetails += "**Returns:** "+toTypeLink(rpc.returns)+"  \n";
+            }
+            ret += "|" + name + " | "+ toTypeLink(rpc.param) + " | " + toTypeLink(rpc.returns) + " | " + description.short + linkdots+ " |  \n";
           }
           ret += "\n\n";
+          if (methodDetails){
+            ret += "#### Method details\n";
+            ret += methodDetails;
+          }
         }
       }
     }
@@ -45,7 +64,7 @@ function protodoc(filename){
       for (i=0;i<messages.length; i++){
         var message = messages[i];
         ret += "### " + message.name + "\n";
-        ret += toDescription(message.precomment, message.postcomment);
+        ret += toDescription(message.precomment, message.postcomment).long;
         ret += "\n\n";
         var fields = message.content.filter(function(a){return a.type == "field"});
         if (fields.length > 0){
@@ -53,7 +72,8 @@ function protodoc(filename){
           ret += "| --- | --- | --- | --- | \n";
           for (j=0;j<fields.length;j++){
             var field = fields[j];
-            ret += "|" + field.name +  " | "+ field.fieldNo + " | "+   toTypeLink(field.typename) + " | " + toDescription(field.precomment, field.postcomment).replace(newline,"") +" | \n";
+            var description = toDescription(field.precomment, field.postcomment);
+            ret += "|" + field.name +  " | "+ field.fieldNo + " | "+   toTypeLink(field.typename) + " | " + description.long.replace(newline,"") +" | \n";
           }
           ret += "\n\n";
         }
@@ -64,12 +84,19 @@ function protodoc(filename){
 
 function toTypeLink(typename){
   typearr = typename.split(" ");
-  typearr[0] = (basicTypes.includes(typearr[0]) ? typearr[0] : ("[" + typearr[0] +"](#"+typearr[0] + ")"))
+  var i = typearr.length-1;
+  typearr[i] = (basicTypes.includes(typearr[i]) ? typearr[i] : ("[" + typearr[i] +"](#"+typearr[i] + ")"))
   return typearr.join("&nbsp;");
 }
 
+function firstLine(description){
+  return (description.split(newline))[0];
+}
+
 function toDescription(precomment, postcomment){
-  return ((precomment?precomment:"")+(postcomment?postcomment:""));
+  var desc = ((precomment?precomment.trim()+"  \n":"")+(postcomment?postcomment.trim():"")).trim();
+  var ret = { long : desc, short : firstLine(desc) }
+  return ret;
 }
 
 function install(hook,vm){
